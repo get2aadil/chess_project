@@ -1,0 +1,292 @@
+{% extends 'base.html' %} 
+{% load static %}
+{% block content %}
+
+
+<div class="row">
+  <!-- Left Column: Active Players or Available Players -->
+  <div class="col-md-2">
+    <h4>Available Players</h4>
+    <ul class="list-group">
+      {% for user in available_users %}
+      <li class="list-group-item">
+        {{ user.username }}
+        <form method="post" action="{% url 'challenge_user' user.id %}" class="d-inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-primary btn-sm">Challenge</button>
+        </form>
+      </li>
+      {% empty %}
+      <li class="list-group-item">No active players.</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <!-- Center Column: Chessboard -->
+  <div class="col-md-8">
+    <h3>Current Game</h3>
+    <p>You are playing as: 
+      <strong>{% if request.user == game.player_white %} White {% else %} Black {% endif %}</strong>
+    </p>
+    <p>Opponent: <strong>{{ opponent.username }}</strong></p>
+    
+    <div class="chessboard-container">
+      {% include 'game/partials/board_state.html' %}
+    </div>
+
+    {% if error %}
+      <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    <!-- Error Message -->
+    <div id="error-message" class="alert alert-danger" style="display:none;"></div>
+
+
+    <!-- Move Form -->
+    <form id="move-form" method="post" class="{% if not is_your_turn %}hidden{% endif %}">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="move">Enter your move (e.g., e2e4):</label>
+          <input type="text" id="move" name="move" class="form-control" required pattern="^[a-h][1-8][a-h][1-8][qrbnQBRN]?$"
+            title="Invalid move format! Please use e2e4 or e7e8q for promotions." />
+        </div>
+        <button type="submit" class="btn btn-primary">Submit Move</button>
+      </form>
+      <p id="waiting-message" class="{% if is_your_turn %}hidden{% endif %}">Waiting for opponent to move...</p>
+
+    <!-- Resign Button -->
+    <form method="post" action="{% url 'resign_game' game.id %}">
+      {% csrf_token %}
+      <button type="submit" id="resign-button" class="btn btn-danger mt-3">Resign</button>
+    </form>
+  </div>
+
+  <!-- Right Column: Game History -->
+  <div class="col-md-2">
+    <h3>Move History</h3>
+      <div id="move-history">
+        {% include 'game/partials/move_history.html' %}
+      </div>
+  </div>
+</div>
+
+<!-- Include JSON data using json_script -->
+{{ game_data_json|json_script:"currentGameData" }}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const currentUserId = "{{ request.user.id }}";
+    const gameId = "{{ game.id }}";
+    const playerWhiteId = "{{ game.player_white.id }}";
+    const playerBlackId = "{{ game.player_black.id }}";
+
+    const gameData = JSON.parse(document.getElementById('currentGameData').textContent);
+    let isYourTurn = gameData.is_your_turn;
+    let pollingActive = false;  // Disable AJAX polling
+
+    // Initialize WebSocket for game moves
+    const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+    const gameSocket = new WebSocket(
+      wsScheme + '://' + window.location.host + '/ws/game/' + gameId + '/'
+    );
+    gameSocket.onopen = function(e) {
+      console.log('WebSocket connection established for game:', gameId);
+    };
+
+    gameSocket.onmessage = function (e) {
+      const data = JSON.parse(e.data);
+      console.log('Received data from WebSocket:', data);
+
+      if (data.success) {
+        // Handle game over
+        if (data.game_over) {
+          handleGameOver(data.result);
+        }
+        // Update chessboard if there is a move
+        if (data.move) {
+          updateChessboard(data.move, data.user_id);
+          // Toggle turn
+          if (!data.game_over) {
+            toggleTurn(data.user_id);
+          }
+        }
+      } else {
+        // Display error
+        displayError(data.error);
+      }
+    };
+
+    gameSocket.onerror = function(e) {
+      console.error('WebSocket error:', e);
+      showToast('WebSocket error occurred.', 'danger');
+    };
+
+    gameSocket.onclose = function (e) {
+      if (e.wasClean) {
+        console.log('WebSocket connection closed cleanly.');
+      } else {
+        console.warn('WebSocket closed unexpectedly:', e);
+        showToast('WebSocket connection closed unexpectedly.', 'warning');
+      }
+    };
+
+    // Handle move form submission
+    const moveForm = document.getElementById('move-form');
+    moveForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const moveInput = document.getElementById('move').value.trim();
+      const csrfToken = getCSRFToken();
+
+      if (!moveInput) {
+        displayError("Move cannot be empty.");
+        return;
+      }
+
+      // Send move through WebSocket
+      gameSocket.send(JSON.stringify({
+        'move': moveInput
+      }));
+
+      console.log('Sent move through WebSocket:', moveInput);
+
+      // Clear move input
+      document.getElementById('move').value = '';
+    });
+
+    // Function to update chessboard
+    function updateChessboard(move, user_id) {
+      fetch("{% url 'game_view' game.id %}", {
+        method: "GET",
+        headers: {
+          "X-Requested-With": "XMLHttpRequest"
+        }
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            document.querySelector(".chessboard-container").innerHTML = data.newBoardHTML;
+            document.querySelector("#move-history").innerHTML = data.moveHistoryHTML;
+            document.querySelector("#error-message").style.display = "none";
+          }
+        })
+        .catch(error => {
+          console.error('Error updating chessboard:', error);
+          showToast('Error updating chessboard.', 'danger');
+        });
+    }
+
+
+    // Function to handle game over
+    function handleGameOver(result) {
+      let resultMessage = '';
+      switch (result) {
+        case 'white_resigned':
+          resultMessage = (currentUserId == playerWhiteId) ? 'You resigned. You lose.' : 'Your opponent resigned. You win!';
+          break;
+        case 'black_resigned':
+          resultMessage = (currentUserId == playerBlackId) ? 'You resigned. You lose.' : 'Your opponent resigned. You win!';
+          break;
+        case 'white_win':
+          resultMessage = (currentUserId == playerWhiteId) ? 'You win!' : 'You lose.';
+          break;
+        case 'black_win':
+          resultMessage = (currentUserId == playerBlackId) ? 'You win!' : 'You lose.';
+          break;
+        case 'draw':
+          resultMessage = 'The game ended in a draw.';
+          break;
+        default:
+          resultMessage = 'Game over.';
+      }
+
+      showToast(`Game over! ${resultMessage}`, 'success');
+
+      // Disable move form and resign button
+      moveForm.classList.add('hidden');
+      document.getElementById('resign-button').disabled = true;
+      document.getElementById('resign-button').innerText = "Game Over";
+      document.getElementById('waiting-message').classList.add('hidden');
+
+      if (gameSocket) {
+        gameSocket.close();
+        console.log('WebSocket connection closed due to game over.');
+     }
+
+      //  redirect after some time
+      setTimeout(function() {
+        window.location.href = '{% url "play_game" %}';
+      }, 5000); // Redirect after 5 seconds
+    }
+
+    // Function to toggle turn
+    function toggleTurn(user_id) {
+      if (user_id == currentUserId) {
+        isYourTurn = false;
+        moveForm.classList.add('hidden');
+        document.getElementById('waiting-message').classList.remove('hidden');
+      } else {
+        isYourTurn = true;
+        moveForm.classList.remove('hidden');
+        document.getElementById('waiting-message').classList.add('hidden');
+      }
+    }
+
+    // Function to display error
+    function displayError(message) {
+      const errorDiv = document.getElementById('error-message');
+      errorDiv.innerText = message;
+      errorDiv.style.display = "block";
+      console.warn('Error message displayed:', message);
+    }
+
+    // Function to create and show a toast
+    function showToast(message, type = 'success') {
+      const toastId = 'toast' + Date.now();
+      const toastHTML = `
+          <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="5000">
+            <div class="toast-header">
+              <strong class="mr-auto">${type.charAt(0).toUpperCase() + type.slice(1)}</strong>
+              <small class="text-muted">Just now</small>
+              <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="toast-body">
+              ${message}
+            </div>
+          </div>
+        `;
+      $('#toast-container').append(toastHTML);
+      $('#' + toastId).toast('show');
+      console.log('Toast shown:', message);
+    }
+
+  // Function to get a cookie by name
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          // Does this cookie string begin with the name we want?
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      console.log(cookieValue)
+      return cookieValue;
+    }
+
+    // Function to get CSRF token from the cookie
+    function getCSRFToken() {
+      return getCookie('csrftoken');
+    }
+
+  });
+</script>
+{% endblock %}

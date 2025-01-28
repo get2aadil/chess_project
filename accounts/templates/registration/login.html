@@ -1,0 +1,43 @@
+{% extends 'base.html' %} {% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <h2 class="text-center">Login</h2>
+
+    <!-- Display form errors only if it's a POST request (form submitted) -->
+    {% if form.errors and request.method == "POST" %}
+      <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <form method="post" class="mt-4">
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input
+          type="text"
+          class="form-control {% if form.username.errors %}is-invalid{% endif %}"
+          id="username"
+          name="username"
+          value="{{ form.username.value|default:'' }}"
+        />
+        <div class="invalid-feedback">{{ form.username.errors.as_text }}</div>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          class="form-control {% if form.password.errors %}is-invalid{% endif %}"
+          id="password"
+          name="password"
+        />
+        <div class="invalid-feedback">{{ form.password.errors.as_text }}</div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Login</button>
+    </form>
+    <div class="text-center mt-3">
+      <p>
+        Don't have an account? <a href="{% url 'register' %}">Join here</a>.
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

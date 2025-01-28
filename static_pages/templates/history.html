@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Page Title -->
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h2>Game History</h2>
+            <p class="lead">Explore the rich history of chess and review your past games.</p>
+        </div>
+    </div>
+
+    <!-- Chess History Section -->
+    <section id="chess-history-section" class="mb-5">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h3 class="card-title text-center mb-4">Chess: A Brief History</h3>
+                <p class="card-text text-justify">
+                    Chess is one of the oldest and most widely played games around the
+                    world. It’s a strategy game for two players, where both skill and
+                    patience are key. The game as we know it today has evolved over many
+                    centuries, but its roots go back to Northern India around the 6th
+                    century, where it was called chaturanga. From there, it spread to
+                    Persia and gained popularity. Eventually, it made its way to the Arab
+                    world and later Europe during the Middle Ages.
+                </p>
+                <p class="card-text text-justify">
+                    By the 15th century, chess had taken on the form we recognize now,
+                    with the introduction of the powerful Queen piece. Over time, chess
+                    became a global phenomenon, enjoyed by millions of people from
+                    different cultures and backgrounds. Beyond being a fun game, chess is
+                    also known for helping players develop critical thinking and
+                    problem-solving skills, which is why it remains so popular today.
+                </p>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Welcome Section -->
+    <div class="jumbotron text-center">
+        <h1 class="display-4">Welcome to ChessMaster!</h1>
+        <p class="lead">
+            Play chess online with friends and players around the world. Challenge opponents, track your game history, and improve your skills!
+        </p>
+        <hr class="my-4">
+        {% if not user.is_authenticated %}
+            <p>Get started by logging in or creating a new account.</p>
+            <a class="btn btn-primary btn-lg mr-2" href="{% url 'login' %}" role="button">Login</a>
+            <a class="btn btn-secondary btn-lg" href="{% url 'register' %}" role="button">Join ChessMaster</a>
+        {% else %}
+            <p>Ready to play? Start a new game or view your game history.</p>
+            <a class="btn btn-success btn-lg mr-2" href="{% url 'new_game' %}" role="button">Start a New Game</a>
+        {% endif %}
+    </div>
+
+    <!-- About the Game -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2>About ChessMaster</h2>
+            <p>
+                ChessMaster is a multiplayer chess platform designed for players of all levels. Whether you're a beginner looking to learn or an experienced player aiming to sharpen your strategies, ChessMaster offers an engaging and user-friendly experience to challenge opponents and improve your game.
+            </p>
+        </div>
+    </div>
+
+    <!-- Features -->
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h2>Features</h2>
+            <p class="text-muted">Explore what ChessMaster has to offer</p>
+        </div>
+    </div>
+    <div class="row">
+        <!-- Feature 1 -->
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Multiplayer Games</h5>
+                    <p class="card-text">
+                        Challenge friends or random players from around the globe in real-time chess matches.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <!-- Feature 2 -->
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Game History</h5>
+                    <p class="card-text">
+                        Keep track of all your past games. Review your moves and learn from your strategies.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- How to Play -->
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h2>How to Play</h2>
+            <p class="text-muted">Getting started is easy!</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <h4>1. Register or Login</h4>
+            <p>
+                Create a new account or log in with your existing credentials to start playing.
+            </p>
+        </div>
+        <div class="col-md-6">
+            <h4>2. Start a New Game</h4>
+            <p>
+                Choose an opponent from the available players list and send them a challenge.
+            </p>
+        </div>
+        <div class="col-md-6">
+            <h4>3. Make Your Move</h4>
+            <p>
+                Use the intuitive chessboard to make your moves. The system will validate and update the game state in real-time.
+            </p>
+        </div>
+        <div class="col-md-6">
+            <h4>4. Track Your Progress</h4>
+            <p>
+                View your game history to analyze your moves and improve your strategies over time.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

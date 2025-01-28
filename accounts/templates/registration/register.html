@@ -1,0 +1,102 @@
+<!-- accounts/templates/registration/register.html -->
+
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <h2 class="text-center">Join ChessMaster</h2>
+    <form method="post" class="mt-4" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      <!-- Username Field -->
+      <div class="form-group mb-3">
+        <label for="{{ form.username.id_for_label }}">Username</label>
+        {% if form.username.errors %}
+          {% render_field form.username class="form-control is-invalid" %}
+        {% else %}
+          {% render_field form.username class="form-control" %}
+        {% endif %}
+        {% if form.username.errors %}
+          <div class="invalid-feedback">
+            {{ form.username.errors.as_text }}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- First Name Field -->
+      <div class="form-group mb-3">
+        <label for="{{ form.first_name.id_for_label }}">First Name</label>
+        {% if form.first_name.errors %}
+          {% render_field form.first_name class="form-control is-invalid" %}
+        {% else %}
+          {% render_field form.first_name class="form-control" %}
+        {% endif %}
+        {% if form.first_name.errors %}
+          <div class="invalid-feedback">
+            {{ form.first_name.errors.as_text }}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Last Name Field -->
+      <div class="form-group mb-3">
+        <label for="{{ form.last_name.id_for_label }}">Last Name</label>
+        {% if form.last_name.errors %}
+          {% render_field form.last_name class="form-control is-invalid" %}
+        {% else %}
+          {% render_field form.last_name class="form-control" %}
+        {% endif %}
+        {% if form.last_name.errors %}
+          <div class="invalid-feedback">
+            {{ form.last_name.errors.as_text }}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Password1 Field -->
+      <div class="form-group mb-3">
+        <label for="{{ form.password1.id_for_label }}">Password</label>
+        {% if form.password1.errors %}
+          {% render_field form.password1 class="form-control is-invalid" %}
+        {% else %}
+          {% render_field form.password1 class="form-control" %}
+        {% endif %}
+        {% if form.password1.errors %}
+          <div class="invalid-feedback">
+            {{ form.password1.errors.as_text }}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Password2 Field -->
+      <div class="form-group mb-3">
+        <label for="{{ form.password2.id_for_label }}">Confirm Password</label>
+        {% if form.password2.errors %}
+          {% render_field form.password2 class="form-control is-invalid" %}
+        {% else %}
+          {% render_field form.password2 class="form-control" %}
+        {% endif %}
+        {% if form.password2.errors %}
+          <div class="invalid-feedback">
+            {{ form.password2.errors.as_text }}
+          </div>
+        {% endif %}
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">Join ChessMaster</button>
+    </form>
+    <div class="text-center mt-3">
+      <p>
+        Already have an account? <a href="{% url 'login' %}">Login here</a>.
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

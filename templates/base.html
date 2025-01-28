@@ -1,0 +1,378 @@
+<!-- templates/base.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <title>{% block title %}California ChessMaster{% endblock %}</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+  {% load static %}
+  <link rel="stylesheet" type="text/css" href="{% static 'game/chessboard.css' %}" />
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="{% static 'game/images/favicon.png' %}" />
+</head>
+
+<body>
+  {% include 'navbar.html' %}
+
+  <!-- Main Content -->
+  <div class="container mt-4">
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show mt-3" role="alert">
+      {{ message }}
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    {% block content %}
+    <!-- Content of each page will go here -->
+    {% endblock %}
+  </div>
+
+  <!-- Toast Container -->
+  <div aria-live="polite" aria-atomic="true" style="position: fixed; top: 1rem; right: 1rem; min-width: 250px;">
+    <div id="toast-container">
+      <!-- Toasts will be dynamically added here -->
+    </div>
+  </div>
+
+  <!-- Logout Confirmation Modal -->
+  <div class="modal fade" id="logoutConfirmationModal" tabindex="-1" aria-labelledby="logoutConfirmationModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="logout-response-form">
+          {% csrf_token %}
+          <div class="modal-header">
+            <h5 class="modal-title" id="logoutConfirmationModalLabel">Quit Current Game</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            Do you want to quit the current game?
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="continueAfterLogout">Continue After Next Login</button>
+            <button type="button" class="btn btn-danger" id="resignAndLogout">Resign and Logout</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Challenge Modal -->
+  <div class="modal fade" id="challengeModal" tabindex="-1" aria-labelledby="challengeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="challenge-response-form">
+          {% csrf_token %}
+          <div class="modal-header">
+            <h5 class="modal-title" id="challengeModalLabel">New Challenge</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p>You have been challenged by <strong id="challenger-name"></strong>!</p>
+            <p>Do you accept the challenge?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="reject-challenge">Reject</button>
+            <button type="button" class="btn btn-primary" id="accept-challenge">Accept</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Dependencies -->
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+  <!-- Global Scripts -->
+  <script>
+   // Initial Polling Call
+   $(document).ready(function () {
+
+    const isAuthenticated = "{{ request.user.is_authenticated|yesno:'true,false' }}";
+    //console.log("Is Authenticated ? " + isAuthenticated)
+    // Initialize WebSocket for challenge notifications
+
+    if (isAuthenticated === 'true') {
+      const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+      const challengeSocket = new WebSocket(
+        wsScheme + '://' + window.location.host + '/ws/challenges/'
+      );
+
+      challengeSocket.onopen = function (e) {
+        console.log('Challenge WebSocket connection established.');
+      };
+
+      challengeSocket.onmessage = function (e) {
+        const data = JSON.parse(e.data);
+        console.log('Received challenge data:', data);
+
+        if (data.type === 'new_challenge') {
+          // Display the challenge modal with challenger information
+          $('#challenger-name').text(data.challenger_username);
+          $('#challengeModal').data('challenge-id', data.challenge_id).modal('show');
+        } else if (data.type === 'challenge_response') {
+          // Handle challenge responses
+          if (data.status === 'accepted') {
+            showToast(`${data.opponent_username} has accepted your challenge!`, "success");
+            // Redirect to the game
+            setTimeout(function () {
+              window.location.href = `/game/${data.game_id}/`;
+            }, 2000);
+          } else if (data.status === 'rejected') {
+            showToast(`${data.opponent_username} has rejected your challenge.`, "info");
+            // Optionally update available users
+          }
+        }
+      };
+
+      challengeSocket.onerror = function (e) {
+        console.error('Challenge WebSocket error:', e);
+      };
+
+      challengeSocket.onclose = function (e) {
+        console.log('Challenge WebSocket connection closed.');
+      };
+
+      const onlineUsersSocket = new WebSocket(
+        wsScheme + '://' + window.location.host + '/ws/online_users/'
+      );
+
+      onlineUsersSocket.onopen = function (e) {
+        console.log('Online Users WebSocket connection established.');
+      };
+
+      onlineUsersSocket.onmessage = function (e) {
+        const data = JSON.parse(e.data);
+        console.log('Received online users data:', data);
+
+        if (data.type === 'online_users') {
+          updateAvailableUsers(data.online_users);
+        }
+      };
+
+      onlineUsersSocket.onerror = function (e) {
+        console.error('Online Users WebSocket error:', e);
+      };
+
+      onlineUsersSocket.onclose = function (e) {
+        console.log('Online Users WebSocket connection closed.');
+      };
+    }
+  });
+
+
+
+    // Function to create and show a toast
+    function showToast(message, type = 'success') {
+      const toastId = 'toast' + Date.now();
+      const toastHTML = `
+          <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="5000">
+            <div class="toast-header">
+              <strong class="mr-auto">${type.charAt(0).toUpperCase() + type.slice(1)}</strong>
+              <small class="text-muted">Just now</small>
+              <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="toast-body">
+              ${message}
+            </div>
+          </div>
+        `;
+      $('#toast-container').append(toastHTML);
+      $('#' + toastId).toast('show');
+    }
+
+
+    // Handle Accept Challenge
+    $(document).on('click', '#accept-challenge', function () {
+      const challengeId = $('#challengeModal').data('challenge-id');
+      $.ajax({
+        url: "{% url 'accept_challenge' 0 %}".replace('/0/', `/${challengeId}/`),
+        method: "POST",
+        data: {
+          'csrfmiddlewaretoken': getCSRFToken()
+        },
+        success: function (response) {
+          if (response.success) {
+            $('#challengeModal').modal('hide');
+            showToast("You have accepted the challenge!", "success");
+            // Redirect to the game view after a short delay
+            setTimeout(function () {
+              window.location.href = `/game/${response.game_id}/`;
+            }, 2000);
+          } else {
+            showToast("Failed to accept the challenge.", "error");
+          }
+        },
+        error: function (xhr, status, error) {
+          console.error("Error accepting challenge:", error);
+          showToast("An error occurred while accepting the challenge.", "error");
+        }
+      });
+    });
+
+    // Handle Reject Challenge
+    $(document).on('click', '#reject-challenge', function () {
+      const challengeId = $('#challengeModal').data('challenge-id');
+      $.ajax({
+        url: "{% url 'reject_challenge' 0 %}".replace('/0/', `/${challengeId}/`),
+        method: "POST",
+        data: {
+          'csrfmiddlewaretoken': getCSRFToken()
+        },
+        success: function (response) {
+          if (response.success) {
+            $('#challengeModal').modal('hide');
+            showToast("You have rejected the challenge.", "info");
+          } else {
+            showToast("Failed to reject the challenge.", "error");
+          }
+        },
+        error: function (xhr, status, error) {
+          console.error("Error rejecting challenge:", error);
+          showToast("An error occurred while rejecting the challenge.", "error");
+        }
+      });
+    });
+
+  // Function to update the available users list in the DOM
+  function updateAvailableUsers(onlineUsers) {
+    const currentUserId = "{{ request.user.id }}"; // Get current user ID from template
+    const availableUsersList = $('#available-users-list');
+    availableUsersList.empty();
+
+    const filteredUsers = onlineUsers.filter(user => user.id != currentUserId);
+
+    if (filteredUsers.length > 0) {
+        filteredUsers.forEach(function (user) {
+            const listItem = `
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+              ${user.username}
+              <button class="btn btn-sm btn-outline-primary challenge-user-btn" data-user-id="${user.id}">
+                Challenge
+              </button>
+            </div>
+            `;
+            availableUsersList.append(listItem);
+        });
+    } else {
+        const noUsersMsg = `<div class="list-group-item text-center">No players available to challenge.</div>`;
+        availableUsersList.append(noUsersMsg);
+    }
+}
+   // Intercept the logout form submission
+      $('#logout-form').on('submit', function (e) {
+        "{% if is_in_active_game %}"
+          e.preventDefault(); // Prevent default logout
+          $('#logoutConfirmationModal').modal('show'); // Show the confirmation modal
+        "{% endif %}"
+      });
+
+      // Handle "Continue After Next Login" button
+      $('#continueAfterLogout').on('click', function () {
+        // Proceed with logout by submitting the form
+        $('#logout-form')[0].submit();
+      });
+
+      // Handle "Resign and Logout" button
+      $('#resignAndLogout').on('click', function () {
+        var active_game_id = "{{ active_game_id }}"
+        console.log("Hello active_game_id" + active_game_id)
+        if (!active_game_id) {
+          showToast('No active game found.', 'danger');
+          return;
+        }
+        
+        var resignUrl = "/game/resign/" + active_game_id + "/";
+
+        // Send AJAX POST request to resign the game
+        $.ajax({
+          url: resignUrl,
+          method: 'POST',
+          headers: { 'X-CSRFToken': getCSRFToken(),
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest"
+           },
+          success: function (response) {
+            if (response.success) {
+              showToast('You have resigned from the game.', 'success');
+              // Proceed to logout
+              $('#logout-form')[0].submit();
+            } else {
+              showToast(response.error || 'Failed to resign the game.', 'danger');
+            }
+          },
+          error: function (xhr, status, error) {
+            console.error('Error resigning the game:', error);
+            showToast('An error occurred while resigning the game.', 'danger');
+          }
+        });
+      });
+
+  $(document).on('click', '.challenge-user-btn', function () {
+    const opponentId = $(this).data('user-id');
+
+    $.ajax({
+      url: `/game/challenge/${opponentId}/`,
+      method: "POST",
+        data: {
+            'csrfmiddlewaretoken': getCSRFToken()
+        },
+      success: function (response) {
+        if (response.success) {
+          showToast(`You have challenged ${response.opponent_username} to a game!`, "success");
+        } else {
+          showToast(response.error || "Failed to send challenge.", "error");
+        }
+      },
+      error: function (xhr, status, error) {
+        console.error("Error sending challenge:", error);
+        showToast("An error occurred while sending the challenge.", "error");
+      }
+    });
+});
+  
+  // Function to get a cookie by name
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        // Does this cookie string begin with the name we want?
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    console.log(cookieValue)
+    return cookieValue;
+  }
+
+  // Function to get CSRF token from the cookie
+  function getCSRFToken() {
+    return getCookie('csrftoken');
+  }
+
+  </script>
+
+  <!-- Add a block for page-specific scripts -->
+  {% block scripts %}
+  {% endblock %}
+</body>
+
+</html>

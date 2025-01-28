@@ -1,0 +1,30 @@
+{% load chess_tags %}
+<table class="chessboard-table">
+    {% for rank in board_rows %}
+    <tr>
+        <!-- Row label -->
+        <th>{{ forloop.revcounter }}</th>
+        {% for square, piece in rank.items %}
+            {% comment %} Calculate if the square should be light or dark {% endcomment %}
+            {% with file_letter=square|slice:":1" %}
+                {% with file_index=file_letter|make_number %}
+                    {% with total_index=forloop.revcounter0|add:file_index %}
+                        {% if total_index|divisibleby:2 %}
+                            <td>{{ piece|safe }}</td>
+                        {% else %}
+                            <td>{{ piece|safe }}</td>
+                        {% endif %}
+                    {% endwith %}
+                {% endwith %}
+            {% endwith %}
+        {% endfor %}
+    </tr>
+    {% endfor %}
+    <!-- Column labels at the bottom -->
+    <tr>
+        <th></th> <!-- Empty cell in bottom-left corner -->
+        {% for file_label in "abcdefgh"|make_list %}
+            <th style="text-align: center;">{{ file_label }}</th>
+        {% endfor %}
+    </tr>
+</table>

@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h2>About Me</h2>
+            <p class="text-muted">Learn more about the developer behind ChessMaster</p>
+        </div>
+    </div>
+
+    <!-- Developer Profile -->
+    <div class="row">
+        <!-- Profile Details -->
+        <div class="col-md-8">
+
+            <h4>Hello! I'm Aadil Shaikh</h4>
+            <p>
+                I'm a passionate software developer with a keen interest in creating interactive and engaging web
+                applications. Currently pursuing my studies, I enjoy exploring various technologies and frameworks to
+                build projects that not only challenge me but also provide value to users.
+            </p>
+            <p>
+                ChessMaster is one of my latest projects, designed as a multiplayer chess platform. The goal was to
+                blend traditional chess gameplay with modern web technologies to offer a seamless and enjoyable
+                experience for players of all skill levels.
+            </p>
+            <h5>My Journey with ChessMaster</h5>
+            <p>
+                The idea for ChessMaster sparked from my love for chess and my desire to create a platform where
+                enthusiasts can connect, compete, and improve their skills. Throughout the development process, I
+                focused on implementing real-time gameplay, maintaining game histories, and ensuring a user-friendly
+                interface.
+            </p>
+        </div>
+        <!-- Skills and Tools -->
+        <div class="col-md-4">
+            <h5>Skills & Tools</h5>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">
+                    <strong>Languages:</strong> Python, JavaScript, HTML, CSS
+                </li>
+                <li class="list-group-item">
+                    <strong>Frameworks:</strong> Django, Bootstrap
+                </li>
+                <li class="list-group-item">
+                    <strong>Databases:</strong> SQLite, PostgreSQL
+                </li>
+                <li class="list-group-item">
+                    <strong>Tools:</strong> Git, GitHub, VS Code
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Contact Information -->
+    <div class="row mt-5">
+        <div class="col-12 text-center">
+            <h4>Get in Touch</h4>
+            <!-- Profile Picture -->
+             <img src="{% static 'game/images/AadilShaikh.jpg' %}" alt="Profile Picture" class="rounded-circle">
+            <p>
+                I'm always open to feedback, suggestions, or collaboration opportunities. Feel free to reach out!
+            </p>
+            <a href="get2aadilshaikh@gmail.com" class="btn btn-outline-primary me-2">Email Me</a>
+            <a href="https://github.com/get2aadil" target="_blank" class="btn btn-outline-dark">GitHub</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

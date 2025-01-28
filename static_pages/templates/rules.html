@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h2>Chess Rules</h2>
+            <p class="text-muted">Learn the basics and advanced rules of chess</p>
+        </div>
+    </div>
+
+    <!-- Objective of the Game -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h4>Objective of the Game</h4>
+            <p>
+                The primary objective in chess is to checkmate your opponent's King. This means putting the King under
+                threat of capture in such a way that there is no legal move the opponent can make to escape the threat.
+            </p>
+        </div>
+    </div>
+
+    <!-- Chessboard Setup -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h4>Chessboard Setup</h4>
+            <p>
+                Chess is played on an 8x8 grid called a chessboard. The board is arranged so that each player has a
+                white (or light-colored) square at the bottom-right corner. Each player starts with 16 pieces:
+            </p>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><strong>1 King</strong></li>
+                <li class="list-group-item"><strong>1 Queen</strong></li>
+                <li class="list-group-item"><strong>2 Rooks</strong></li>
+                <li class="list-group-item"><strong>2 Bishops</strong></li>
+                <li class="list-group-item"><strong>2 Knights</strong></li>
+                <li class="list-group-item"><strong>8 Pawns</strong></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Pieces and Their Movements -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h4>Pieces and Their Movements</h4>
+            <p>
+                Each type of chess piece moves in a unique way:
+            </p>
+            <div class="row">
+                <!-- King -->
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">King</h5>
+                            <p class="card-text">
+                                The King can move one square in any direction—horizontally, vertically, or diagonally.
+                                Protecting your King is crucial as losing it means losing the game.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Queen -->
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Queen</h5>
+                            <p class="card-text">
+                                The Queen is the most powerful piece. She can move any number of squares in any
+                                direction—horizontally, vertically, or diagonally.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Rook -->
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Rook</h5>
+                            <p class="card-text">
+                                The Rook can move any number of squares horizontally or vertically. There are two Rooks
+                                for each player, placed at the corners of the board at the start.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Bishop -->
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Bishop</h5>
+                            <p class="card-text">
+                                The Bishop moves any number of squares diagonally. Each player starts with two Bishops,
+                                one moving on light squares and the other on dark squares.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Knight -->
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Knight</h5>
+                            <p class="card-text">
+                                The Knight has a unique movement: it moves in an "L-shape"—two squares in one direction
+                                and then one square perpendicular. Knights can jump over other pieces.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Pawn -->
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Pawn</h5>
+                            <p class="card-text">
+                                Pawns move forward one square but capture diagonally. On their first move, they can
+                                choose to move forward two squares. Pawns promote to any other piece (usually a Queen)
+                                when they reach the farthest row from their starting position.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Special Moves -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h4>Special Moves</h4>
+            <p>
+                Besides standard moves, there are a few special moves in chess:
+            </p>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">
+                    <strong>Castling:</strong> A move that involves the King and one of the Rooks. It allows the King to
+                    move two squares towards a Rook on the player's first rank, then the Rook moves to the square the
+                    King crossed. Castling can only occur if neither the King nor the Rook has moved, there are no
+                    pieces between them, and the King is not in check or moving through/checking.
+                </li>
+                <li class="list-group-item">
+                    <strong>En Passant:</strong> A special pawn capture that can occur immediately after an opponent's
+                    pawn moves two squares forward from its starting position, passing through the square where it could
+                    have been captured by your pawn. Your pawn can capture the opponent's pawn "in passing" as if it had
+                    moved only one square forward.
+                </li>
+                <li class="list-group-item">
+                    <strong>Pawn Promotion:</strong> When a pawn reaches the farthest row from its starting position, it
+                    must be promoted to another piece (Queen, Rook, Bishop, or Knight). Most players choose to promote
+                    to a Queen.
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Check and Checkmate -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h4>Check and Checkmate</h4>
+            <p>
+                - <strong>Check:</strong> When a King is under threat of capture, it is in "check." The player must make
+                a move to remove the threat by moving the King, blocking the attack, or capturing the attacking piece.
+            </p>
+            <p>
+                - <strong>Checkmate:</strong> When a King is in check and there are no legal moves to escape the threat,
+                it is "checkmate," and the game is over. The player whose King is checkmated loses the game.
+            </p>
+        </div>
+    </div>
+
+    <!-- Draws -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h4>Draws</h4>
+            <p>
+                A game can end in a draw under certain conditions:
+            </p>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">
+                    <strong>Stalemate:</strong> Occurs when the player whose turn it is has no legal moves and their
+                    King is not in check.
+                </li>
+                <li class="list-group-item">
+                    <strong>Threefold Repetition:</strong> If the same position occurs three times with the same player
+                    to move, either player can claim a draw.
+                </li>
+                <li class="list-group-item">
+                    <strong>Fifty-Move Rule:</strong> If fifty consecutive moves are made by both players without any
+                    pawn movement or capture, either player can claim a draw.
+                </li>
+                <li class="list-group-item">
+                    <strong>Insufficient Material:</strong> If neither player has enough pieces to force a checkmate
+                    (e.g., King vs. King, King and Bishop vs. King), the game is a draw.
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

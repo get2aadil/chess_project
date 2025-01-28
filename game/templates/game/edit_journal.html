@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Edit Journal Entry for Game Against {{ opponent.username }}</h2>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="journal_entry">Journal Entry:</label>
+      <textarea id="journal_entry" name="journal_entry" class="form-control"
+        rows="10">{{ journal_entry.entry }}</textarea>
+    </div>
+    <button type="submit" class="btn btn-primary mt-3">Save Entry</button>
+    <a href="{% url 'home' %}" class="btn btn-secondary mt-3">Cancel</a>
+  </form>
+</div>
+{% endblock %}

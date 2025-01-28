@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Journal Entry for Game Against {{ opponent.username }}</h2>
+
+    <div class="card">
+        <div class="card-body">
+            {% if journal_entry %}
+                <p>{{ journal_entry.entry|linebreaks }}</p>
+            {% else %}
+                <p>No journal entry available for this game.</p>
+                <a href="{% url 'edit_journal' game.id %}" class="btn btn-primary">Add Journal Entry</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <a href="{% url 'home' %}" class="btn btn-secondary mt-3">Back to Home</a>
+</div>
+{% endblock %}

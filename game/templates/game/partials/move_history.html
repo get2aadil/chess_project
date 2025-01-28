@@ -1,0 +1,24 @@
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Move #</th>
+            <th>Player</th>
+            <th>Move</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for move in move_history %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>
+                {% if not forloop.counter|divisibleby:"2" %}
+                    {{ game.player_white.username }}
+                {% else %}
+                    {{ game.player_black.username }}
+                {% endif %}
+            </td>
+            <td>{{ move }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
